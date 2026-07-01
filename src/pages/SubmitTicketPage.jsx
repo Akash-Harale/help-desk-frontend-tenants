@@ -6,7 +6,7 @@
  * returning users don't have to re-enter them.
  */
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Send, Paperclip, X, ChevronDown, AlertCircle,
   CheckCircle2, RefreshCw, User, Mail, Building2
@@ -44,15 +44,23 @@ export default function SubmitTicketPage() {
   const [submitter, setSubmitter] = useState({
     name:     saved?.name     || '',
     email:    saved?.email    || '',
-    org_name: saved?.org_name || ''
+    org_name: saved?.org_name || '',
+    user_id:  saved?.user_id  || null
   });
 
-  const [form,       setForm]       = useState(INITIAL_FORM);
+  const location = useLocation();
+  const typeParam = new URLSearchParams(location.search).get('type') || 'issue';
+
+  const [form,       setForm]       = useState({ ...INITIAL_FORM, ticketType: typeParam });
   const [attachment, setAttachment] = useState(null);
   const [errors,     setErrors]     = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted,  setSubmitted]  = useState(null);
   const [apiError,   setApiError]   = useState('');
+
+  useEffect(() => {
+    setForm(f => ({ ...f, ticketType: typeParam }));
+  }, [typeParam]);
 
   // ── Validation ──────────────────────────────────────────────────────────────
   const validate = () => {
@@ -101,8 +109,9 @@ export default function SubmitTicketPage() {
       const result = await createTicket({
         ...form,
         createdBy: {
-          name:  submitter.name.trim(),
-          email: submitter.email.trim().toLowerCase()
+          name:    submitter.name.trim(),
+          email:   submitter.email.trim().toLowerCase(),
+          user_id: submitter.user_id || null
         },
         orgInfo: { org_name: submitter.org_name.trim() || 'N/A' },
         attachment
@@ -157,8 +166,10 @@ export default function SubmitTicketPage() {
             {[
               { label: 'Ticket #',   value: `#${submitted.ticketNumber}` },
               { label: 'Subject',    value: submitted.subject },
-              { label: 'Priority',   value: submitted.priority },
-              { label: 'Status',     value: submitted.status  }
+              ...(submitted.ticketType !== 'feedback' ? [
+                { label: 'Priority',   value: submitted.priority },
+                { label: 'Status',     value: submitted.status  }
+              ] : [])
             ].map(row => (
               <div key={row.label} style={{
                 display: 'flex', justifyContent: 'space-between',
@@ -192,10 +203,12 @@ export default function SubmitTicketPage() {
     <div className="page-wrapper fade-up" style={{ maxWidth: 700, margin: '0 auto' }}>
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '0.35rem' }}>
-          Submit a Ticket
+          {typeParam === 'feedback' ? 'Submit Feedback' : 'Create a Ticket'}
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.93rem' }}>
-          Fill in the details below and our team will get back to you shortly.
+          {typeParam === 'feedback'
+            ? 'Share your suggestions or feedback with our team below.'
+            : 'Fill in the issue details below and our team will get back to you shortly.'}
         </p>
       </div>
 
@@ -220,93 +233,130 @@ export default function SubmitTicketPage() {
               <User size={13} /> Your Information
             </h2>
 
-            <div className="grid-2">
-              {/* Name */}
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" htmlFor="submitter-name">
-                  Full Name *
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <User size={14} style={{
-                    position: 'absolute', left: 12, top: '50%',
-                    transform: 'translateY(-50%)', color: 'var(--text-muted)',
-                    pointerEvents: 'none'
-                  }} />
-                  <input
-                    id="submitter-name"
-                    type="text"
-                    className="form-input"
-                    placeholder="John Smith"
-                    value={submitter.name}
-                    onChange={changeSubmitter('name')}
-                    style={{ paddingLeft: '2.5rem' }}
-                  />
+            {submitter.user_id ? (
+              <div style={{
+                background: 'var(--brand-color-muted)',
+                border: '1px solid var(--border-accent)',
+                borderRadius: 'var(--r-md)',
+                padding: '1rem 1.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12
+              }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: '50%',
+                  background: 'var(--brand-gradient)', color: 'white',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 700, fontSize: '1rem', flexShrink: 0
+                }}>
+                  {submitter.name.charAt(0).toUpperCase() || 'U'}
                 </div>
-                {errors.name && <p className="form-error">{errors.name}</p>}
-              </div>
-
-              {/* Email */}
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" htmlFor="submitter-email">
-                  Email Address *
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <Mail size={14} style={{
-                    position: 'absolute', left: 12, top: '50%',
-                    transform: 'translateY(-50%)', color: 'var(--text-muted)',
-                    pointerEvents: 'none'
-                  }} />
-                  <input
-                    id="submitter-email"
-                    type="email"
-                    className="form-input"
-                    placeholder="you@company.com"
-                    value={submitter.email}
-                    onChange={changeSubmitter('email')}
-                    style={{ paddingLeft: '2.5rem' }}
-                  />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                      {submitter.name}
+                    </span>
+                    <CheckCircle2 size={14} color="var(--green-text)" />
+                    <span style={{ fontSize: '0.72rem', background: 'var(--green-bg)', color: 'var(--green-text)', padding: '2px 8px', borderRadius: 99, fontWeight: 600 }}>
+                      Verified Identity
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: 2 }}>
+                    {submitter.email} {submitter.org_name ? `• ${submitter.org_name}` : ''}
+                  </div>
                 </div>
-                {errors.email && <p className="form-error">{errors.email}</p>}
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="grid-2">
+                  {/* Name */}
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" htmlFor="submitter-name">
+                      Full Name *
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <User size={14} style={{
+                        position: 'absolute', left: 12, top: '50%',
+                        transform: 'translateY(-50%)', color: 'var(--text-muted)',
+                        pointerEvents: 'none'
+                      }} />
+                      <input
+                        id="submitter-name"
+                        type="text"
+                        className="form-input"
+                        placeholder="John Smith"
+                        value={submitter.name}
+                        onChange={changeSubmitter('name')}
+                        style={{ paddingLeft: '2.5rem' }}
+                      />
+                    </div>
+                    {errors.name && <p className="form-error">{errors.name}</p>}
+                  </div>
 
-            {/* Org / dept */}
-            <div className="form-group" style={{ marginTop: '1rem', marginBottom: 0 }}>
-              <label className="form-label" htmlFor="submitter-org">
-                Organization / Department
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Building2 size={14} style={{
-                  position: 'absolute', left: 12, top: '50%',
-                  transform: 'translateY(-50%)', color: 'var(--text-muted)',
-                  pointerEvents: 'none'
-                }} />
-                <input
-                  id="submitter-org"
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Engineering, Sales, HR…"
-                  value={submitter.org_name}
-                  onChange={changeSubmitter('org_name')}
-                  style={{ paddingLeft: '2.5rem' }}
-                />
-              </div>
-            </div>
+                  {/* Email */}
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" htmlFor="submitter-email">
+                      Email Address *
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <Mail size={14} style={{
+                        position: 'absolute', left: 12, top: '50%',
+                        transform: 'translateY(-50%)', color: 'var(--text-muted)',
+                        pointerEvents: 'none'
+                      }} />
+                      <input
+                        id="submitter-email"
+                        type="email"
+                        className="form-input"
+                        placeholder="you@company.com"
+                        value={submitter.email}
+                        onChange={changeSubmitter('email')}
+                        style={{ paddingLeft: '2.5rem' }}
+                      />
+                    </div>
+                    {errors.email && <p className="form-error">{errors.email}</p>}
+                  </div>
+                </div>
 
-            {saved?.name && (
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                ✓ Details remembered from your last submission.{' '}
-                <button
-                  type="button"
-                  style={{ background: 'none', border: 'none', color: 'var(--brand-color)', cursor: 'pointer', fontSize: '0.78rem', padding: 0 }}
-                  onClick={() => {
-                    localStorage.removeItem(SUBMITTER_KEY);
-                    setSubmitter({ name: '', email: '', org_name: '' });
-                  }}
-                >
-                  Clear
-                </button>
-              </p>
+                {/* Org / dept */}
+                <div className="form-group" style={{ marginTop: '1rem', marginBottom: 0 }}>
+                  <label className="form-label" htmlFor="submitter-org">
+                    Organization / Department
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <Building2 size={14} style={{
+                      position: 'absolute', left: 12, top: '50%',
+                      transform: 'translateY(-50%)', color: 'var(--text-muted)',
+                      pointerEvents: 'none'
+                    }} />
+                    <input
+                      id="submitter-org"
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. Engineering, Sales, HR…"
+                      value={submitter.org_name}
+                      onChange={changeSubmitter('org_name')}
+                      style={{ paddingLeft: '2.5rem' }}
+                    />
+                  </div>
+                </div>
+
+                {saved?.name && !saved?.user_id && (
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                    ✓ Details remembered from your last submission.{' '}
+                    <button
+                      type="button"
+                      style={{ background: 'none', border: 'none', color: 'var(--brand-color)', cursor: 'pointer', fontSize: '0.78rem', padding: 0 }}
+                      onClick={() => {
+                        localStorage.removeItem(SUBMITTER_KEY);
+                        setSubmitter({ name: '', email: '', org_name: '', user_id: null });
+                      }}
+                    >
+                      Clear
+                    </button>
+                  </p>
+                )}
+              </>
             )}
           </div>
 
@@ -323,33 +373,8 @@ export default function SubmitTicketPage() {
           </h2>
 
           {/* Ticket type */}
-          <div className="form-group">
-            <label className="form-label">Ticket Type *</label>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              {TYPES.map(t => (
-                <label key={t.value} style={{
-                  flex: 1, minWidth: 180,
-                  padding: '0.85rem 1rem',
-                  border: `2px solid ${form.ticketType === t.value ? 'var(--brand-color)' : 'var(--border)'}`,
-                  borderRadius: 'var(--r-sm)',
-                  background: form.ticketType === t.value ? 'var(--brand-color-muted)' : 'var(--bg-glass)',
-                  cursor: 'pointer', fontSize: '0.88rem',
-                  fontWeight: form.ticketType === t.value ? 600 : 400,
-                  color: form.ticketType === t.value ? 'var(--brand-color)' : 'var(--text-secondary)',
-                  transition: 'all 0.15s ease',
-                  display: 'flex', alignItems: 'center', gap: 8
-                }}>
-                  <input
-                    type="radio" name="ticketType" value={t.value}
-                    checked={form.ticketType === t.value}
-                    onChange={changeForm('ticketType')}
-                    style={{ display: 'none' }}
-                  />
-                  {t.label}
-                </label>
-              ))}
-            </div>
-            {errors.ticketType && <p className="form-error">{errors.ticketType}</p>}
+          <div className="form-group" style={{ display: 'none' }}>
+            <input type="hidden" value={form.ticketType} />
           </div>
 
           {/* Subject */}
@@ -382,27 +407,29 @@ export default function SubmitTicketPage() {
           </div>
 
           {/* Priority */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="ticket-priority">Priority</label>
-            <div style={{ position: 'relative' }}>
-              <select
-                id="ticket-priority"
-                className="form-select form-input"
-                value={form.priority}
-                onChange={changeForm('priority')}
-                style={{ paddingRight: '2.5rem' }}
-              >
-                {PRIORITIES.map(p => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
-                ))}
-              </select>
-              <ChevronDown size={16} style={{
-                position: 'absolute', right: 12, top: '50%',
-                transform: 'translateY(-50%)',
-                pointerEvents: 'none', color: 'var(--text-muted)'
-              }} />
+          {form.ticketType !== 'feedback' && (
+            <div className="form-group">
+              <label className="form-label" htmlFor="ticket-priority">Priority</label>
+              <div style={{ position: 'relative' }}>
+                <select
+                  id="ticket-priority"
+                  className="form-select form-input"
+                  value={form.priority}
+                  onChange={changeForm('priority')}
+                  style={{ paddingRight: '2.5rem' }}
+                >
+                  {PRIORITIES.map(p => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
+                <ChevronDown size={16} style={{
+                  position: 'absolute', right: 12, top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none', color: 'var(--text-muted)'
+                }} />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Attachment */}
           <div className="form-group">

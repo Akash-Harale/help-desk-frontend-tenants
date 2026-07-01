@@ -9,8 +9,9 @@
  * the `setAuthToken` helper and stored in the request interceptor.
  */
 import axios from 'axios';
+import { RESOLVED_APP_KEY } from '../utils/resolveAppKey';
 
-const APP_KEY   = import.meta.env.VITE_APP_KEY   || '';
+const APP_KEY   = RESOLVED_APP_KEY;
 const BASE_URL  = import.meta.env.VITE_API_BASE_URL || '/api';
 
 // ── Axios instance ──────────────────────────────────────────────────────────

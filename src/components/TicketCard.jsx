@@ -39,7 +39,7 @@ export default function TicketCard({ ticket }) {
               #{ticket.ticketNumber}
             </span>
             <TypeBadge type={ticket.ticketType} />
-            <PriorityBadge priority={ticket.priority} />
+            {ticket.ticketType !== 'feedback' && <PriorityBadge priority={ticket.priority} />}
           </div>
           <h3 style={{
             fontSize: '0.97rem', fontWeight: 600,
@@ -48,13 +48,13 @@ export default function TicketCard({ ticket }) {
           }}>
             {ticket.subject}
           </h3>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
             {truncate(ticket.description, 90)}
           </p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-          <StatusBadge status={ticket.status} />
+          {ticket.ticketType !== 'feedback' && <StatusBadge status={ticket.status} />}
           <ChevronRight size={16} color="var(--text-muted)" />
         </div>
       </div>

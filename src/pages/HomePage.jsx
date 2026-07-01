@@ -19,8 +19,16 @@ import { STATUS_META } from '../utils/helpers';
 export default function HomePage() {
   const navigate = useNavigate();
   const { theme, organization_name } = useTenant();
-  const { user }                      = useUser();
-  const { tickets, loading }          = useTickets({}, true);
+  const { user, isAdmin }            = useUser();
+
+  // Scope tickets to the current user unless they are an admin
+  const homeFilters = isAdmin
+    ? { is_admin: true }
+    : user?.user_id
+      ? { user_id: user.user_id }
+      : {};
+
+  const { tickets, loading } = useTickets(homeFilters, true);
 
   const stats = {
     total:       tickets.length,
@@ -82,18 +90,13 @@ export default function HomePage() {
           </p>
 
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button className="btn" onClick={() => navigate('/submit')} style={{
-              background: '#fff',
-              color: 'var(--brand-color)',
-              fontWeight: 700,
+            <button className="btn btn-hero-primary" onClick={() => navigate('/submit?type=issue')} style={{
               padding: '0.75rem 1.5rem',
               fontSize: '0.95rem'
             }}>
               <PlusCircle size={18} /> Submit a Ticket
             </button>
-            <button className="btn btn-ghost" onClick={() => navigate('/tickets')} style={{
-              borderColor: 'rgba(255,255,255,0.4)',
-              color: '#fff',
+            <button className="btn btn-hero-ghost" onClick={() => navigate('/tickets?type=issue')} style={{
               padding: '0.75rem 1.5rem',
               fontSize: '0.95rem'
             }}>

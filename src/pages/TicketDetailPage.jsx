@@ -85,8 +85,8 @@ export default function TicketDetailPage() {
               Ticket #{ticket.ticketNumber}
             </span>
             <TypeBadge type={ticket.ticketType} />
-            <PriorityBadge priority={ticket.priority} />
-            <StatusBadge status={ticket.status} />
+            {ticket.ticketType !== 'feedback' && <PriorityBadge priority={ticket.priority} />}
+            {ticket.ticketType !== 'feedback' && <StatusBadge status={ticket.status} />}
           </div>
           <h1 style={{
             fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)',
@@ -98,7 +98,7 @@ export default function TicketDetailPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.5rem', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth >= 1024 ? 'minmax(0, 1fr) 360px' : '1fr', gap: '2rem', alignItems: 'start' }}>
 
         {/* ── Left: main content ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -108,7 +108,7 @@ export default function TicketDetailPage() {
             <h2 style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
               <MessageSquare size={14} /> Description
             </h2>
-            <p style={{ fontSize: '0.95rem', lineHeight: 1.75, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
+            <p style={{ fontSize: '0.95rem', lineHeight: 1.75, color: 'var(--text-primary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
               {ticket.description}
             </p>
 
@@ -154,46 +154,48 @@ export default function TicketDetailPage() {
           )}
 
           {/* Status Timeline */}
-          <div className="card">
-            <h2 style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1.25rem' }}>
-              Status Timeline
-            </h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-              {STATUS_FLOW.map((step, idx) => {
-                const done   = idx <= currentStep;
-                const active = idx === currentStep;
-                const label  = step.replace('_', ' ');
-                return (
-                  <React.Fragment key={step}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: idx < STATUS_FLOW.length - 1 ? '0 0 auto' : 1 }}>
-                      <div style={{
-                        width: 28, height: 28, borderRadius: '50%',
-                        background: done ? 'var(--brand-gradient)' : 'var(--bg-glass)',
-                        border: `2px solid ${active ? 'var(--brand-color)' : done ? 'transparent' : 'var(--border)'}`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: active ? 'var(--shadow-brand)' : 'none',
-                        flexShrink: 0
-                      }}>
-                        {done ? <CheckCircle2 size={14} color="#fff" /> :
-                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--border)' }} />}
+          {ticket.ticketType !== 'feedback' && (
+            <div className="card">
+              <h2 style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1.25rem' }}>
+                Status Timeline
+              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                {STATUS_FLOW.map((step, idx) => {
+                  const done   = idx <= currentStep;
+                  const active = idx === currentStep;
+                  const label  = step.replace('_', ' ');
+                  return (
+                    <React.Fragment key={step}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: idx < STATUS_FLOW.length - 1 ? '0 0 auto' : 1 }}>
+                        <div style={{
+                          width: 28, height: 28, borderRadius: '50%',
+                          background: done ? 'var(--brand-gradient)' : 'var(--bg-glass)',
+                          border: `2px solid ${active ? 'var(--brand-color)' : done ? 'transparent' : 'var(--border)'}`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: active ? 'var(--shadow-brand)' : 'none',
+                          flexShrink: 0
+                        }}>
+                          {done ? <CheckCircle2 size={14} color="#fff" /> :
+                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--border)' }} />}
+                        </div>
+                        <span style={{
+                          fontSize: '0.7rem', fontWeight: active ? 700 : 400,
+                          color: active ? 'var(--brand-color)' : done ? 'var(--text-secondary)' : 'var(--text-muted)',
+                          textTransform: 'capitalize', whiteSpace: 'nowrap'
+                        }}>{label}</span>
                       </div>
-                      <span style={{
-                        fontSize: '0.7rem', fontWeight: active ? 700 : 400,
-                        color: active ? 'var(--brand-color)' : done ? 'var(--text-secondary)' : 'var(--text-muted)',
-                        textTransform: 'capitalize', whiteSpace: 'nowrap'
-                      }}>{label}</span>
-                    </div>
-                    {idx < STATUS_FLOW.length - 1 && (
-                      <div style={{
-                        flex: 1, height: 2, marginBottom: 22,
-                        background: idx < currentStep ? 'var(--brand-gradient)' : 'var(--border)'
-                      }} />
-                    )}
-                  </React.Fragment>
-                );
-              })}
+                      {idx < STATUS_FLOW.length - 1 && (
+                        <div style={{
+                          flex: 1, height: 2, marginBottom: 22,
+                          background: idx < currentStep ? 'var(--brand-gradient)' : 'var(--border)'
+                        }} />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* ── Right sidebar: meta ── */}

@@ -12,6 +12,8 @@
  */
 import React, { createContext, useContext, useEffect, useReducer, useCallback } from 'react';
 import api from '../services/api';
+import { RESOLVED_APP_KEY, HAS_APP_KEY } from '../utils/resolveAppKey';
+export { RESOLVED_APP_KEY, HAS_APP_KEY };
 
 // ── Default fallback theme ──────────────────────────────────────────────────
 const DEFAULT_THEME = {
@@ -24,29 +26,33 @@ const DEFAULT_THEME = {
 
 // ── State shape ─────────────────────────────────────────────────────────────
 const initialState = {
-  loading:         true,
-  error:           null,
-  tenant_id:       '',
+  loading:           true,
+  error:             null,
+  noAppKey:          false,   // true when no app_key is configured at all
+  tenant_id:         '',
   organization_name: '',
-  theme:           DEFAULT_THEME
+  theme:             DEFAULT_THEME
 };
 
 // ── Reducer ─────────────────────────────────────────────────────────────────
 function tenantReducer(state, action) {
   switch (action.type) {
     case 'FETCH_START':
-      return { ...state, loading: true, error: null };
+      return { ...state, loading: true, error: null, noAppKey: false };
+    case 'NO_APP_KEY':
+      return { ...state, loading: false, error: null, noAppKey: true };
     case 'FETCH_SUCCESS':
       return {
         ...state,
         loading:           false,
         error:             null,
+        noAppKey:          false,
         tenant_id:         action.payload.tenant_id,
         organization_name: action.payload.organization_name,
         theme:             { ...DEFAULT_THEME, ...action.payload.theme }
       };
     case 'FETCH_ERROR':
-      return { ...state, loading: false, error: action.payload };
+      return { ...state, loading: false, error: action.payload, noAppKey: false };
     default:
       return state;
   }
@@ -92,6 +98,13 @@ export function TenantProvider({ children }) {
   const [state, dispatch] = useReducer(tenantReducer, initialState);
 
   const fetchBranding = useCallback(async () => {
+    // Short-circuit: no app_key configured → skip API, show fallback UI
+    if (!HAS_APP_KEY) {
+      dispatch({ type: 'NO_APP_KEY' });
+      applyThemeToCssVars(DEFAULT_THEME);
+      return;
+    }
+
     dispatch({ type: 'FETCH_START' });
     try {
       const { data } = await api.get('/branding');

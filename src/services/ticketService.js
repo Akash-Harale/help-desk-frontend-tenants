@@ -45,7 +45,7 @@ export const createTicket = async (payload) => {
  * Fetch list of tickets for the authenticated tenant/user.
  * Supports optional filter query params.
  *
- * @param {object} filters - { status, priority, type, search, startDate, endDate }
+ * @param {object} filters - { status, priority, type, search, startDate, endDate, user_id, is_admin }
  */
 export const getTickets = async (filters = {}) => {
   const params = {};
@@ -55,6 +55,10 @@ export const getTickets = async (filters = {}) => {
   if (filters.search)    params.search    = filters.search;
   if (filters.startDate) params.startDate = filters.startDate;
   if (filters.endDate)   params.endDate   = filters.endDate;
+  // User-scoping: pass user_id so backend can filter by createdBy.user_id
+  if (filters.user_id)   params.user_id   = filters.user_id;
+  // is_admin=true tells the backend to skip user-scoping (show all tenant tickets)
+  if (filters.is_admin)  params.is_admin  = 'true';
 
   const { data } = await api.get('/tickets', { params });
   return data;
@@ -65,5 +69,30 @@ export const getTickets = async (filters = {}) => {
  */
 export const getTicketById = async (id) => {
   const { data } = await api.get(`/tickets/${id}`);
+  return data;
+};
+
+/**
+ * Update a ticket's status (admin only).
+ * Appends a comment entry to the ticket's comments array in the backend.
+ *
+ * @param {string} id          - Ticket MongoDB _id
+ * @param {string} status      - New status: 'open' | 'in_progress' | 'resolved' | 'closed'
+ * @param {string} comment     - Admin comment/reason (optional but tied to the status change)
+ * @param {object} adminInfo   - { name, role } of the admin making the change
+ */
+export const updateTicketStatus = async (id, status, comment = '', adminInfo = {}) => {
+  const payload = {
+    status,
+    comment,
+    admin_name: adminInfo.name || '',
+    admin_role: adminInfo.role || '',
+    resolvedBy: JSON.stringify({
+      admin_id: adminInfo.user_id || '',
+      name:     adminInfo.name    || '',
+      email:    adminInfo.email   || ''
+    })
+  };
+  const { data } = await api.patch(`/tickets/${id}/status`, payload);
   return data;
 };
