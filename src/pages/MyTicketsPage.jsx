@@ -13,11 +13,18 @@ import {
   Search, RefreshCw, PlusCircle, X, Loader2,
   FileText, MessageSquare, AlertCircle, CheckCircle2,
   Clock, XCircle, Hash, ChevronDown, ChevronUp,
-  ShieldCheck, Send, MessageCircle
+  ShieldCheck, Send, MessageCircle, Paperclip
 } from 'lucide-react';
 import { useTickets } from '../hooks/useTickets';
 import { updateTicketStatus } from '../services/ticketService';
 import { useUser } from '../context/UserContext';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:3200';
+const getAttachmentUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${API_BASE}${path.startsWith('/') ? '' : '/'}${path}`;
+};
 
 const fmt = (iso) => {
   if (!iso) return '—';
@@ -479,7 +486,53 @@ export default function MyTicketsPage() {
                       <div>
                         <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Description</div>
                         <div style={{ background: 'var(--bg-base)', padding: '1.25rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', fontSize: '0.95rem', lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                          {selected.description}
+                          <div style={{ marginBottom: selected.attachment ? '1.25rem' : 0 }}>
+                            {selected.description}
+                          </div>
+                          {selected.attachment && (() => {
+                            const attUrl = getAttachmentUrl(selected.attachment);
+                            const isImg = /\.(png|jpe?g|gif|webp)$/i.test(selected.attachment);
+                            return (
+                              <div style={{
+                                marginTop: '1rem',
+                                paddingTop: '1rem',
+                                borderTop: '1px dashed var(--border)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.75rem'
+                              }}>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <Paperclip size={13} color="var(--brand-color)" /> Attached File / Screenshot
+                                </div>
+                                {isImg && (
+                                  <a href={attUrl} target="_blank" rel="noreferrer" style={{ display: 'block', maxWidth: '100%', overflow: 'hidden', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)' }}>
+                                    <img src={attUrl} alt="Attachment preview" style={{ maxHeight: 240, maxWidth: '100%', objectFit: 'contain', display: 'block', background: 'rgba(0,0,0,0.2)' }} />
+                                  </a>
+                                )}
+                                <a
+                                  href={attUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 8,
+                                    padding: '0.55rem 1rem',
+                                    background: 'var(--brand-color-muted)',
+                                    border: '1px solid var(--border-accent)',
+                                    borderRadius: 'var(--r-sm)',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 600,
+                                    color: 'var(--brand-color)',
+                                    textDecoration: 'none',
+                                    width: 'fit-content'
+                                  }}
+                                >
+                                  <Paperclip size={14} /> View / Download Attachment ↗
+                                </a>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
 

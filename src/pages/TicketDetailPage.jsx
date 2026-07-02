@@ -15,6 +15,11 @@ import { StatusBadge, PriorityBadge, TypeBadge } from '../components/StatusBadge
 import { formatDate, timeAgo } from '../utils/helpers';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:3200';
+const getAttachmentUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${API_BASE}${path.startsWith('/') ? '' : '/'}${path}`;
+};
 
 const STATUS_FLOW = ['open', 'in_progress', 'resolved', 'closed'];
 
@@ -108,31 +113,56 @@ export default function TicketDetailPage() {
             <h2 style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
               <MessageSquare size={14} /> Description
             </h2>
-            <p style={{ fontSize: '0.95rem', lineHeight: 1.75, color: 'var(--text-primary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-              {ticket.description}
-            </p>
+            <div style={{ marginBottom: ticket.attachment ? '1.25rem' : 0 }}>
+              <p style={{ fontSize: '0.95rem', lineHeight: 1.75, color: 'var(--text-primary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                {ticket.description}
+              </p>
+            </div>
 
-            {ticket.attachment && (
-              <a
-                href={`${API_BASE}${ticket.attachment}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  marginTop: '1.25rem',
-                  padding: '0.5rem 1rem',
-                  background: 'var(--bg-glass)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--r-sm)',
-                  fontSize: '0.85rem',
-                  color: 'var(--brand-color)',
-                  textDecoration: 'none'
-                }}
-              >
-                <Paperclip size={14} />
-                View Attachment
-              </a>
-            )}
+            {ticket.attachment && (() => {
+              const attUrl = getAttachmentUrl(ticket.attachment);
+              const isImg = /\.(png|jpe?g|gif|webp)$/i.test(ticket.attachment);
+              return (
+                <div style={{
+                  marginTop: '1rem',
+                  paddingTop: '1rem',
+                  borderTop: '1px dashed var(--border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem'
+                }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Paperclip size={13} color="var(--brand-color)" /> Attached File / Screenshot
+                  </div>
+                  {isImg && (
+                    <a href={attUrl} target="_blank" rel="noreferrer" style={{ display: 'block', maxWidth: '100%', overflow: 'hidden', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)' }}>
+                      <img src={attUrl} alt="Attachment preview" style={{ maxHeight: 280, maxWidth: '100%', objectFit: 'contain', display: 'block', background: 'rgba(0,0,0,0.2)' }} />
+                    </a>
+                  )}
+                  <a
+                    href={attUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '0.55rem 1rem',
+                      background: 'var(--brand-color-muted)',
+                      border: '1px solid var(--border-accent)',
+                      borderRadius: 'var(--r-sm)',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      color: 'var(--brand-color)',
+                      textDecoration: 'none',
+                      width: 'fit-content'
+                    }}
+                  >
+                    <Paperclip size={14} /> View / Download Attachment ↗
+                  </a>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Resolution note */}
