@@ -21,7 +21,7 @@ const getAttachmentUrl = (path) => {
   return `${API_BASE}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
-const STATUS_FLOW = ['open', 'in_progress', 'resolved', 'closed'];
+const STATUS_FLOW = ['open', 'acknowledged', 'in_progress', 'resolved', 'closed'];
 
 export default function TicketDetailPage() {
   const { id }   = useParams();

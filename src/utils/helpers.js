@@ -29,10 +29,11 @@ export function timeAgo(iso) {
 
 /** Map ticket status → { label, color class suffix } */
 export const STATUS_META = {
-  open:        { label: 'Open',        color: 'blue'   },
-  in_progress: { label: 'In Progress', color: 'amber'  },
-  resolved:    { label: 'Resolved',    color: 'green'  },
-  closed:      { label: 'Closed',      color: 'slate'  }
+  open:         { label: 'Open',         color: 'blue'   },
+  acknowledged: { label: 'Acknowledged', color: 'purple' },
+  in_progress:  { label: 'In Progress',  color: 'amber'  },
+  resolved:     { label: 'Resolved',     color: 'green'  },
+  closed:       { label: 'Closed',       color: 'slate'  }
 };
 
 /** Map ticket priority → { label, color class suffix } */

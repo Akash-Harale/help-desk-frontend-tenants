@@ -39,6 +39,11 @@ const statusMeta = {
     bg: 'var(--blue-bg)', text: 'var(--blue-text)', border: 'var(--blue-border)',
     icon: <AlertCircle size={12} />
   },
+  acknowledged: {
+    label: 'Acknowledged',
+    bg: 'var(--purple-bg)', text: 'var(--purple-text)', border: 'var(--purple-border)',
+    icon: <CheckCircle2 size={12} />
+  },
   in_progress: {
     label: 'In Progress',
     bg: 'var(--amber-bg)', text: 'var(--amber-text)', border: 'var(--amber-border)',
@@ -321,6 +326,7 @@ export default function MyTicketsPage() {
           >
             <option value="">All Statuses</option>
             <option value="open">Open</option>
+            <option value="acknowledged">Acknowledged</option>
             <option value="in_progress">In Progress</option>
             <option value="resolved">Resolved</option>
             <option value="closed">Closed</option>
@@ -658,6 +664,7 @@ export default function MyTicketsPage() {
                             style={{ marginBottom: '0.75rem' }}
                           >
                             <option value="open">Open</option>
+                            <option value="acknowledged">Acknowledged</option>
                             <option value="in_progress">In Progress</option>
                             <option value="resolved">Resolved</option>
                             {isCreator && <option value="closed">Closed</option>}

@@ -13,21 +13,25 @@ import {
   PlusCircle,
   TicketCheck,
   MessageSquare,
+  Shield,
   X,
 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
-
-const NAV_ITEMS = [
-  { label: 'Home',            to: '/',                      icon: Home          },
-  { label: 'Create Ticket',   to: '/submit?type=issue',     icon: PlusCircle    },
-  { label: 'Submit Feedback', to: '/submit?type=feedback',  icon: MessageSquare },
-  { label: 'My Tickets',      to: '/tickets?type=issue',    icon: TicketCheck   },
-  { label: 'My Feedbacks',    to: '/tickets?type=feedback', icon: MessageSquare },
-];
+import { useUser } from '../context/UserContext';
 
 export default function Sidebar({ isOpen, onClose }) {
   const { theme, organization_name } = useTenant();
+  const { isAdmin } = useUser();
   const location = useLocation();
+
+  const navItems = [
+    { label: 'Home',            to: '/',                      icon: Home          },
+    { label: 'Admin Dashboard', to: '/admin',                 icon: Shield        },
+    { label: 'Create Ticket',   to: '/submit?type=issue',     icon: PlusCircle    },
+    { label: 'Submit Feedback', to: '/submit?type=feedback',  icon: MessageSquare },
+    { label: 'My Tickets',      to: '/tickets?type=issue',    icon: TicketCheck   },
+    { label: 'My Feedbacks',    to: '/tickets?type=feedback', icon: MessageSquare },
+  ];
 
   const displayName = theme?.brand_name || organization_name || 'Help Desk';
   const logoUrl     = theme?.logo_url   || '';
@@ -74,7 +78,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
         {/* Navigation */}
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map(({ label, to, icon: Icon }) => {
+          {navItems.map(({ label, to, icon: Icon }) => {
             const path = to.split('?')[0];
             const paramType = new URLSearchParams(to.split('?')[1] || '').get('type');
             const currentType = new URLSearchParams(location.search).get('type');

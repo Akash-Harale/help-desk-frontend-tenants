@@ -65,6 +65,16 @@ export const getTickets = async (filters = {}) => {
 };
 
 /**
+ * Fetch aging report tickets up to date.
+ */
+export const getAgingReport = async (dateStr, is_admin = true) => {
+  const params = { date: dateStr };
+  if (is_admin) params.is_admin = 'true';
+  const { data } = await api.get('/tickets/aging-report', { params });
+  return data;
+};
+
+/**
  * Fetch a single ticket by its MongoDB ObjectId.
  */
 export const getTicketById = async (id) => {

@@ -31,10 +31,11 @@ export default function HomePage() {
   const { tickets, loading } = useTickets(homeFilters, true);
 
   const stats = {
-    total:       tickets.length,
-    open:        tickets.filter(t => t.status === 'open').length,
-    in_progress: tickets.filter(t => t.status === 'in_progress').length,
-    resolved:    tickets.filter(t => ['resolved','closed'].includes(t.status)).length
+    total:        tickets.length,
+    open:         tickets.filter(t => t.status === 'open').length,
+    acknowledged: tickets.filter(t => t.status === 'acknowledged').length,
+    in_progress:  tickets.filter(t => t.status === 'in_progress').length,
+    resolved:     tickets.filter(t => ['resolved','closed'].includes(t.status)).length
   };
 
   const recent = tickets.slice(0, 3);
@@ -109,21 +110,24 @@ export default function HomePage() {
       {/* ── Stats strip ── */}
       <div className="grid-3" style={{ marginBottom: '2.5rem' }}>
         {[
-          { label: 'Total Tickets', value: stats.total,       icon: Inbox,        color: 'brand' },
-          { label: 'Open',          value: stats.open,        icon: AlertCircle,  color: 'blue'  },
-          { label: 'In Progress',   value: stats.in_progress, icon: Clock,        color: 'amber' },
+          { label: 'Total Tickets', value: stats.total,        icon: Inbox,        color: 'brand' },
+          { label: 'Open',          value: stats.open,         icon: AlertCircle,  color: 'blue'  },
+          { label: 'Acknowledged',  value: stats.acknowledged, icon: CheckCircle2, color: 'purple'},
+          { label: 'In Progress',   value: stats.in_progress,  icon: Clock,        color: 'amber' },
         ].map(s => (
           <div key={s.label} className="card card-sm" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div style={{
               width: 44, height: 44, borderRadius: 12, flexShrink: 0,
               background: s.color === 'brand' ? 'var(--brand-color-muted)'
                         : s.color === 'blue'  ? 'var(--blue-bg)'
+                        : s.color === 'purple'? 'var(--purple-bg)'
                         : 'var(--amber-bg)',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
               <s.icon size={20}
                 color={s.color === 'brand' ? 'var(--brand-color)'
                       : s.color === 'blue'  ? 'var(--blue-text)'
+                      : s.color === 'purple'? 'var(--purple-text)'
                       : 'var(--amber-text)'}
               />
             </div>

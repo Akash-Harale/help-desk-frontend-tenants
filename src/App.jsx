@@ -24,6 +24,7 @@ import HomePage         from './pages/HomePage';
 import SubmitTicketPage from './pages/SubmitTicketPage';
 import MyTicketsPage    from './pages/MyTicketsPage';
 import TicketDetailPage from './pages/TicketDetailPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
 // ── App shell rendered after providers are ready ─────────────────────────────
 function AppShell() {
@@ -117,6 +118,8 @@ function AppShell() {
             <div className="portal-content">
               <Routes>
                 <Route path="/"            element={<HomePage />} />
+                <Route path="/admin"       element={<AdminDashboardPage />} />
+                <Route path="/dashboard"   element={<AdminDashboardPage />} />
                 <Route path="/submit"      element={<SubmitTicketPage />} />
                 <Route path="/tickets"     element={<MyTicketsPage />} />
                 <Route path="/tickets/:id" element={<TicketDetailPage />} />
